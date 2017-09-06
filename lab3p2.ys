@@ -1,0 +1,106 @@
+.pos 0
+Init:
+    irmovl Stack, %ebp
+    irmovl Stack, %esp
+    call Main
+    halt
+
+
+# input array of 6 elements
+        .align 4
+array:  .long 0x2
+        .long 0x4
+        .long 0x5
+        .long 0x3
+        .long 0x6
+        .long 0x2
+
+end:   .long 0xFFFFFFFF
+
+# The stack starts here and grows to lower addresses
+.pos 0x100
+Stack:
+
+.pos 0x104
+
+Main:
+    pushl %ebp
+    rrmovl %esp, %ebp
+    irmovl array, %edx # store array at %edx
+    pushl %edx
+    call Get_Pair
+    rrmovl %ebp, %esp
+    popl %ebp
+    ret
+
+# --------------------------------------------------------
+Get_Pair:
+    pushl %ebp
+    rrmovl %esp, %ebp
+    mrmovl 8(%ebp), %ecx        # ecx = base
+    xorl %eax, %eax             # result = 0
+Get_Pair_Loop:
+    mrmovl (%ecx), %esi         # get *base
+    mrmovl 4(%ecx), %edi         # get *power
+    call Raise2Pwr
+    xorl %eax, %eax
+    #default eax to 0
+    irmovl $8, %esi
+    addl %esi, %ecx             # ecx + 8
+    mrmovl (%ecx), %edi         # check if value of ecx is -1
+    andl %edi, %edi
+    jge Get_Pair_Loop
+Get_Pair_End:
+    rrmovl %ebp, %esp
+    popl %ebp
+    ret
+#----------------------------------------------------------
+
+
+# int Multiply (int x, int y)
+# x is passed in as %esi, y is passed in as %eax.
+Mul_Op:
+    # Set up stack frame.
+    pushl %ebp
+    rrmovl %esp, %ebp
+    pushl %edi
+
+    rrmovl %eax, %edx       #edx is used to keep the current base number
+    addl %ebx, %esi         #esi is used to decrease, used as a counter
+Mul_Op_Loop:
+    addl %edx, %eax   # eax += edx
+    addl %ebx, %esi   # esi -= 1, counter--, ebx is always -1
+    jne Mul_Op_Loop # if (esi != 0) goto Multiply_Loop
+
+Mul_Op_End:
+    # Clean up stack frame.
+    popl %edi
+    rrmovl %ebp, %esp
+    popl %ebp
+    ret
+
+
+# int raise2pwr(int num, int power)
+# base is passed in as %esi, power is passed in as %edi
+Raise2Pwr:
+    # Set up stack frame.
+    pushl %ebp
+    rrmovl %esp, %ebp
+    irmovl $-1, %ebx        #ebx = -1
+
+    rrmovl %esi, %eax       #esi = num, copy base from esi to eax, eax will be the final result
+    addl %ebx, %edi         #edi -= 1, power is decrement 1 in each loop
+    je Raise2Pwr_End
+
+Raise2Pwr_Loop:
+    pushl %esi
+    call Mul_Op       #eax = eax * eax
+    popl %esi
+    addl %ebx, %edi     #edi -= 1
+    jne Raise2Pwr_Loop
+
+Raise2Pwr_End:
+    # Clean up stack frame
+    rrmovl %ebp, %esp
+    popl %ebp
+    ret

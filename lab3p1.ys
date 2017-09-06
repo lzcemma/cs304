@@ -1,0 +1,104 @@
+.pos 0
+Init:
+    irmovl Stack, %ebp
+    irmovl Stack, %esp
+    call Main
+    halt
+
+
+# input array of 4 elements
+        .align 4
+array:  .long 0x5
+        .long 0x3
+
+end:   .long 0xFFFFFFFF
+
+# The stack starts here and grows to lower addresses
+.pos 0x100
+Stack:
+
+.pos 0x104
+#-------------------------------------------------------------------------------
+Main:
+    pushl %ebp
+    rrmovl %esp, %ebp
+    irmovl array, %edx # base
+    pushl %edx
+    call Iterate
+    rrmovl %ebp, %esp
+    popl %ebp
+    ret
+
+# ------------------------------------------------------------------------------
+Iterate:
+    pushl %ebp
+    rrmovl %esp, %ebp
+    mrmovl 8(%ebp), %ecx        # ecx = Start
+    xorl %eax, %eax             # result = 0
+Iterate_Loop:
+    mrmovl (%ecx), %esi         #get = *Start
+    call Fact                   #after calling Fact, %eax will store the final result
+    xorl %eax, %eax             #then %eax will set to default 0
+    irmovl $4, %ebx
+    addl %ebx, %ecx
+    mrmovl (%ecx), %ebx
+    andl %ebx, %ebx
+    jge Iterate_Loop
+Iterate_End:
+    rrmovl %ebp, %esp
+    popl %ebp
+    ret
+#-------------------------------------------------------------------------------
+
+# int Multiply (int x, int y)
+# x is passed in as %eax, y is passed in as %esi.
+Multiply:
+    # Set up stack frame.
+    pushl %ebp
+    rrmovl %esp, %ebp
+    pushl %esi          #esi is the decreasing number
+
+    rrmovl %esi, %ebx       #ebx is a copy of the decreasing number, used as a counter
+    rrmovl %eax, %esi       #esi acts as current base
+    # Skip multiply loop silently if multiplying by <= 0.
+    addl %edi, %ebx
+    jle Multiply_End
+
+Multiply_Loop:
+    addl %esi, %eax   # eax += esi
+    addl %edi, %ebx   # ebx -= 1, counter--, edi always store -1
+    jne Multiply_Loop # if (ebs != 0) goto Multiply_Loop
+
+Multiply_End:
+    # Clean up stack frame.
+    popl %esi
+    rrmovl %ebp, %esp
+    popl %ebp
+    ret
+
+#-------------------------------------------------------------------------------
+
+# int factorial(int num)
+# num is passed in as %esi
+Fact:
+    # Set up stack frame.
+    pushl %ebp
+    rrmovl %esp, %ebp
+
+    irmovl $-1, %edi        #edi = -1
+
+    rrmovl %esi, %eax       #eax is a copy of esi, esi is decreasing number. eax is used to store the final result
+    addl %edi, %esi         #edx -= 1
+
+Fact_Loop:
+    pushl %esi
+    call Multiply       #eax = eax * esi
+    popl %esi
+    addl %edi, %esi     #esi -= 1
+    jne Fact_Loop
+
+Fact_End:
+    # Clean up stack frame
+    rrmovl %ebp, %esp
+    popl %ebp
+    ret
