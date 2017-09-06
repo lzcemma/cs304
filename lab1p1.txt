@@ -1,0 +1,54 @@
+File name: lab1p1.txt
+Author: Linyong Nan; Zichang Liu
+Date: Feb 12, 2017
+
+
+1       #include <stdio.h>
+2       #include <stdlib.h>
+3
+4       int main(void){
+5
+6               int i = 2;
+7               while(i < 256){
+8                       i = square(i);
+9               }
+10              printf("%d\n", i);
+11              return (EXIT_SUCCESS);
+12      }
+13
+14      int square(int x){
+15              int y = x * x;
+16              return (x * x);
+17      }
+
+Debugger commands:
+1. run
+After the program is compiled successfully, the correctness of the output can be checked
+by running the program and compared the result with the expectation. By giving the command
+"run" in the debugger environment, the program with .exe is started and a result of 256 is 
+printed out, verify the correctness of this program.
+
+2. break (line number)
+Now we want to add some break points to the positions we think are important for us to figure out
+the behavior of the program. In this program, line 6 and line 15 are both positions we can 
+set up breakpoints. Command "break 6" and "break 15" will do the job.
+
+3. step
+Assume we want to know how, from the very beginning, that our program would run in every step.
+Then we can use command "step" right after the command "start", which will enable us to be
+accessable to every single steps of the running program.
+
+4. print (variable name)
+We use this command in combine with step command, to see the status and values of each variables
+that we think are important in determining the correct behavior of our program. For example in this
+program, after every iterations of calling the function square in the while loop, we can print out
+the value of i, to see if the returned value from the function square is as expected. The result is,
+after 8 iterations, i increases to 256 and escaped from the while loop and printed out.
+
+5. next
+It is another command that allows us to access the partial states of the program. It is different from
+the command step that, command next will execute the part that is not in main function (subroutine) 
+silently and stop at steps in the main function. In this program, in the while loop each time we use
+command next is equivalent to an iteration, the steps in the function square are executed automatically.
+It is a more efficient way to jump through some subroutines that we are confident about, and a combination
+of using next and step give makes the debugging process both efficient and accurate.
